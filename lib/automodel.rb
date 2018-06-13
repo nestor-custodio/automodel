@@ -1,4 +1,4 @@
-require "automodel/version"
+require 'automodel/version'
 
 module Automodel
   # Your code goes here...
