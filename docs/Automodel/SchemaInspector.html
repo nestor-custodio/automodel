@@ -371,19 +371,6 @@ ActiveRecord::ConnectionHandling) to inspect and map out.</p>
   
 </ul>
 
-<p class="tag_title">Raises:</p>
-<ul class="raise">
-  
-    <li>
-      
-      
-        <span class='type'>(<tt><span class='object_link'><a href="UnregisteredAdapter.html" title="Automodel::UnregisteredAdapter (class)">Automodel::UnregisteredAdapter</a></span></tt>)</span>
-      
-      
-      
-    </li>
-  
-</ul>
 
 </div><table class="source_code">
   <tr>
@@ -391,23 +378,21 @@ ActiveRecord::ConnectionHandling) to inspect and map out.</p>
       <pre class="lines">
 
 
-61
-62
-63
 64
 65
 66
-67</pre>
+67
+68
+69</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/automodel/schema_inspector.rb', line 61</span>
+      <pre class="code"><span class="info file"># File 'lib/automodel/schema_inspector.rb', line 64</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_connection_handler'>connection_handler</span><span class='rparen'>)</span>
   <span class='ivar'>@connection</span> <span class='op'>=</span> <span class='id identifier rubyid_connection_handler'>connection_handler</span><span class='period'>.</span><span class='id identifier rubyid_connection'>connection</span>
   <span class='id identifier rubyid_adapter'>adapter</span> <span class='op'>=</span> <span class='id identifier rubyid_connection_handler'>connection_handler</span><span class='period'>.</span><span class='id identifier rubyid_connection_pool'>connection_pool</span><span class='period'>.</span><span class='id identifier rubyid_spec'>spec</span><span class='period'>.</span><span class='id identifier rubyid_config'>config</span><span class='lbracket'>[</span><span class='symbol'>:adapter</span><span class='rbracket'>]</span>
 
   <span class='ivar'>@registration</span> <span class='op'>=</span> <span class='id identifier rubyid_known_adapters'>known_adapters</span><span class='lbracket'>[</span><span class='id identifier rubyid_adapter'>adapter</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
-  <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../Automodel.html" title="Automodel (module)">Automodel</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="UnregisteredAdapter.html" title="Automodel::UnregisteredAdapter (class)">UnregisteredAdapter</a></span></span><span class='comma'>,</span> <span class='id identifier rubyid_adapter'>adapter</span> <span class='kw'>unless</span> <span class='ivar'>@registration</span>
 <span class='kw'>end</span></pre>
     </td>
   </tr>
@@ -461,7 +446,7 @@ ActiveRecord::ConnectionHandling) to inspect and map out.</p>
     
 <p>“Registers” an adapter with the Automodel::SchemaInspector. This allows for
 alternate mechanisms of procuring lists of tables, columns, primary keys,
-and/or foreign keys from an adapter that may not support
+and/or foreign keys from an adapter that may not itself support
 <code>#tables</code>/<code>#columns</code>/<code>#primary_key</code>/<code>#foreign_keys</code>.</p>
 
 
@@ -582,18 +567,18 @@ connection and a table name.</p>
       <pre class="lines">
 
 
-47
-48
-49
 50
 51
 52
 53
 54
-55</pre>
+55
+56
+57
+58</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/automodel/schema_inspector.rb', line 47</span>
+      <pre class="code"><span class="info file"># File 'lib/automodel/schema_inspector.rb', line 50</span>
 
 <span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_register_adapter'>register_adapter</span><span class='lparen'>(</span><span class='label'>adapter:</span><span class='comma'>,</span> <span class='label'>tables:</span><span class='comma'>,</span> <span class='label'>columns:</span><span class='comma'>,</span> <span class='label'>primary_key:</span><span class='comma'>,</span> <span class='label'>foreign_keys:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_adapter'>adapter</span> <span class='op'>=</span> <span class='id identifier rubyid_adapter'>adapter</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span><span class='period'>.</span><span class='id identifier rubyid_downcase'>downcase</span>
@@ -679,8 +664,6 @@ connection <code>#columns</code> is returned.</p>
       <pre class="lines">
 
 
-99
-100
 101
 102
 103
@@ -688,10 +671,12 @@ connection <code>#columns</code> is returned.</p>
 105
 106
 107
-108</pre>
+108
+109
+110</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/automodel/schema_inspector.rb', line 99</span>
+      <pre class="code"><span class="info file"># File 'lib/automodel/schema_inspector.rb', line 101</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_columns'>columns</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_table_name'>table_name</span> <span class='op'>=</span> <span class='id identifier rubyid_table_name'>table_name</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
@@ -725,7 +710,10 @@ connection <code>#columns</code> is returned.</p>
 <p>If a matching Automodel::SchemaInspector registration is found for the
 connection&#39;s adapter, and that registration specified a
 <code>:foreign_keys</code> Proc, the Proc is called. Otherwise, the
-standard connection <code>#foreign_key</code> is returned.</p>
+standard connection <code>#foreign_keys</code> is attempted. If that call
+to `<code>#foreign_keys</code> raises a ::NoMethodError or
+::NotImplementedError, a best-effort attempt is made to build a list of
+foreign keys based on table and column names.</p>
 
 
   </div>
@@ -772,10 +760,6 @@ standard connection <code>#foreign_key</code> is returned.</p>
       <pre class="lines">
 
 
-147
-148
-149
-150
 151
 152
 153
@@ -809,10 +793,14 @@ standard connection <code>#foreign_key</code> is returned.</p>
 181
 182
 183
-184</pre>
+184
+185
+186
+187
+188</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/automodel/schema_inspector.rb', line 147</span>
+      <pre class="code"><span class="info file"># File 'lib/automodel/schema_inspector.rb', line 151</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_foreign_keys'>foreign_keys</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_table_name'>table_name</span> <span class='op'>=</span> <span class='id identifier rubyid_table_name'>table_name</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
@@ -947,8 +935,6 @@ connection <code>#primary_key</code> is returned.</p>
       <pre class="lines">
 
 
-123
-124
 125
 126
 127
@@ -956,10 +942,12 @@ connection <code>#primary_key</code> is returned.</p>
 129
 130
 131
-132</pre>
+132
+133
+134</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/automodel/schema_inspector.rb', line 123</span>
+      <pre class="code"><span class="info file"># File 'lib/automodel/schema_inspector.rb', line 125</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_primary_key'>primary_key</span><span class='lparen'>(</span><span class='id identifier rubyid_table_name'>table_name</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_table_name'>table_name</span> <span class='op'>=</span> <span class='id identifier rubyid_table_name'>table_name</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
@@ -1020,16 +1008,16 @@ connection <code>#tables</code> is returned.</p>
       <pre class="lines">
 
 
-78
-79
 80
 81
 82
 83
-84</pre>
+84
+85
+86</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/automodel/schema_inspector.rb', line 78</span>
+      <pre class="code"><span class="info file"># File 'lib/automodel/schema_inspector.rb', line 80</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_tables'>tables</span>
   <span class='ivar'>@tables</span> <span class='op'>||=</span> <span class='kw'>if</span> <span class='ivar'>@registration</span><span class='lbracket'>[</span><span class='symbol'>:tables</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span>
@@ -1048,7 +1036,7 @@ connection <code>#tables</code> is returned.</p>
 </div>
 
       <div id="footer">
-  Generated on Thu Jun 14 11:22:52 2018 by
+  Generated on Thu Jun 14 14:06:16 2018 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.14 (ruby-2.5.1).
 </div>

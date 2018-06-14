@@ -14,15 +14,15 @@ require 'automodel/version'
 ## @param spec [Symbol, String, Hash]
 ##   The Symbol/String/Hash to pass through to the ActiveRecord connection resolver, as detailed in
 ##   [ActiveRecord::ConnectionHandling#establish_connection](http://bit.ly/2JQdA8c). Whether the
-##   given `spec` value is a Hash or is a Symbol/String to run through the ActiveRecord resolver,
+##   given "spec" value is a Hash or is a Symbol/String to run through the ActiveRecord resolver,
 ##   the resulting Hash may include the following options (in addition to the actual connection
 ##   parameters).
 ##
 ## @option spec [String] :subschema
 ##   The name of an additional namespace with which tables in the target database are prefixed.
-##   Intended for use with SQL Server, where tables' fully-qualified names may have an additional
-##   namespace between the database name and the table name (e.g. `database.dbo.table`, in which
-##   case the subschema would be `"dbo"`.
+##   Intended for use with SQL Server, where a table's fully-qualified name may have an additional
+##   level of namespacing between the database name and the base table name (e.g.
+##   `database.dbo.table`, in which case the subschema would be `"dbo"`).
 ##
 ## @option spec [String] :namespace
 ##   A String representing the desired namespace for the generated model classes (e.g. `"NewDB"` or

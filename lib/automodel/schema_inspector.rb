@@ -21,7 +21,7 @@ module Automodel
 
     ## "Registers" an adapter with the Automodel::SchemaInspector. This allows for alternate
     ## mechanisms of procuring lists of tables, columns, primary keys, and/or foreign keys from an
-    ## adapter that may not support `#tables`/`#columns`/`#primary_key`/`#foreign_keys`.
+    ## adapter that may not itself support `#tables`/`#columns`/`#primary_key`/`#foreign_keys`.
     ##
     ##
     ## @param adapter [String, Symbol]
@@ -44,6 +44,9 @@ module Automodel
     ##   The Proc to `#call` to request a list of foreign keys for a specific table. The Proc will
     ##   be called with two parameters: a database connection and a table name.
     ##
+    ##
+    ## @raise [Automodel::AdapterAlreadyRegistered]
+    ##
     def self.register_adapter(adapter:, tables:, columns:, primary_key:, foreign_keys: nil)
       adapter = adapter.to_sym.downcase
       raise Automodel::AdapterAlreadyRegistered, adapter if known_adapters.key? adapter
@@ -63,7 +66,6 @@ module Automodel
       adapter = connection_handler.connection_pool.spec.config[:adapter]
 
       @registration = known_adapters[adapter.to_sym] || {}
-      raise Automodel::UnregisteredAdapter, adapter unless @registration
     end
 
     ## Returns a list of table names in the target database.
@@ -135,7 +137,9 @@ module Automodel
     ##
     ## If a matching Automodel::SchemaInspector registration is found for the connection's adapter,
     ## and that registration specified a `:foreign_keys` Proc, the Proc is called. Otherwise, the
-    ## standard connection `#foreign_key` is returned.
+    ## standard connection `#foreign_keys` is attempted. If that call to ``#foreign_keys` raises a
+    ## ::NoMethodError or ::NotImplementedError, a best-effort attempt is made to build a list of
+    ## foreign keys based on table and column names.
     ##
     ##
     ## @param table_name [String]

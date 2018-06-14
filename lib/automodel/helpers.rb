@@ -2,11 +2,11 @@ require 'automodel/automodel'
 require 'automodel/schema_inspector'
 
 module Automodel
-  ## Houses some helper methods used directly by `#automodel`.
+  ## Houses some helper methods used directly by {::automodel}.
   ##
   module Helpers
     class << self
-      ## Takes a connection pool (an object that implements ActiveRecord::ConnectionHandling),
+      ## Takes a connection handler (an object that implements ActiveRecord::ConnectionHandling),
       ## scrapes the target database, and returns a list of the tables' metadata.
       ##
       ##
@@ -22,14 +22,14 @@ module Automodel
       ##   An Array where each value is a Hash representing a table in the target database. Each
       ##   such Hash will define the following keys:
       ##
-      ##   - `:name` [String] -- The table name, prefixed with the subschema name (if one is given).
-      ##   - `:columns` [Array<ActiveRecord::ConnectionAdapters::Column>]
-      ##   - `:primary_key` [String, Array<String>]
-      ##   - `:foreign_keys` [Array<ActiveRecord::ConnectionAdapters::ForeignKeyDefinition>]
-      ##   - `:base_name` [String] -- The table name, with no subschema.
-      ##   - `:model_name` [String] -- A Railsy class name for the corresponding model.
-      ##   - `:composite_primary_key` [true, false]
-      ##   - `:column_aliases` [Hash<String, ActiveRecord::ConnectionAdapters::Column>]
+      ##   - `:name` (String) -- The table name, prefixed with the subschema name (if one is given).
+      ##   - `:columns` (Array<ActiveRecord::ConnectionAdapters::Column>)
+      ##   - `:primary_key` (String, Array<String>)
+      ##   - `:foreign_keys` (Array<ActiveRecord::ConnectionAdapters::ForeignKeyDefinition>)
+      ##   - `:base_name` (String) -- The table name, with no subschema.
+      ##   - `:model_name` (String) -- A Railsy class name for the corresponding model.
+      ##   - `:composite_primary_key` (true, false)
+      ##   - `:column_aliases` (Hash<String, ActiveRecord::ConnectionAdapters::Column>)
       ##
       def map_tables(connection_handler, subschema: '')
         ## Normalize the "subschema" name.
@@ -67,11 +67,12 @@ module Automodel
       ##
       ##
       ## @return [String]
-      ##   The given column's name, in Railsy form. Note Date/Datetime columns are not suffixed with
-      ##   "_on" or "_at" per Rails norm, as this can work against you with column names like
-      ##   "BirthDate" (which would turn into "birth_on"). A future release will address this by
-      ##   building out a comprehensive list of such names and their correct Railsy representation,
-      ##   but that is not currently the case.
+      ##   The given column's name, in Railsy form.
+      ##
+      ##   Note Date/Datetime columns are not suffixed with "_on" or "_at" per Rails norm, as this
+      ##   can work against you sometimes ("BirthDate" turns into "birth_on"). A future release will
+      ##   address this by building out a comprehensive list of such names and their correct Railsy
+      ##   representation, but that is not currently the case.
       ##
       def railsy_column_name(column)
         case column.type
@@ -82,7 +83,7 @@ module Automodel
         end
       end
 
-      ## Registers the given class "as" the given name and "within" the given namespace (if any).
+      ## Registers the given class **as** the given name and **within** the given namespace (if any).
       ##
       ##
       ## @param class_object [Class]
@@ -96,9 +97,13 @@ module Automodel
       ##   class does not exist, as many nested modules as needed are declared so the class can be
       ##   registered as requested.
       ##
-      ##   e.g.: `register_class(Class.new, as: "Sample", within: "Many::Levels::Deep")` will
-      ##         declare module `Many`, module `Many::Levels`, module `Many::Levels::Deep`, and then
-      ##         register the given class as `Many::Levels::Deep::Sample`.
+      ##   e.g. Calling this method with an "as" value of `"Sample"` and a "within" value of
+      ##        `"Many::Levels::Deep"` will: check for module/class "Many" and create one as a
+      ##        Module if it doesn't already exist; then check for a module/class "Many::Levels" and
+      ##        create a "Levels" Module within `Many` if it doesn't already exist; then check for a
+      ##        module/class "Many::Levels::Deep" and create a "Deep" Module within `Many::Levels`
+      ##        if it doesn't already exist; and finally register the given class as "Sample" within
+      ##        `Many::Levels::Deep`.
       ##
       ##
       ## @return [Class]
