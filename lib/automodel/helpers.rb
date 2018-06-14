@@ -75,12 +75,24 @@ module Automodel
       ##   representation, but that is not currently the case.
       ##
       def railsy_column_name(column)
-        case column.type
-        when :boolean
-          column.name.underscore.sub(%r{^is_}, '')
-        else
-          column.name.underscore
-        end
+        name = railsy_name(column.name)
+        name = name.sub(%r{^is_}, '') if column.type == :boolean
+
+        name
+      end
+
+      ## Returns the given name in Railsy form.
+      ##
+      ##
+      ## @param name [String, Symbol]
+      ##   The column name for which we want to generate a Railsy name.
+      ##
+      ##
+      ## @return [String]
+      ##   The given name, in Railsy form.
+      ##
+      def railsy_name(name)
+        name.to_s.gsub(%r{[^a-z0-9]+}i, '_').underscore
       end
 
       ## Registers the given class **as** the given name and **within** the given namespace (if any).
