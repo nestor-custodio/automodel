@@ -5,16 +5,45 @@ require 'automodel/automodel'
 require 'automodel/errors'
 
 module Automodel
+  ## A utility object that issues the actual database inspection commands and returns the table,
+  ## column, primary-key, and foreign-key data.
+  ##
   class SchemaInspector
     ## rubocop:disable all
 
-    ## Class-Instance variable ...
+    ## Class-Instance variable: `known_adapters` is a Hash of adapters registered via
+    ## {Automodel::SchemaInspector.register_adapter}.
     ##
     @known_adapters = {}
     def self.known_adapters; @known_adapters; end
     def known_adapters; self.class.known_adapters; end
     ## rubocop:enable all
 
+    ## "Registers" an adapter with the Automodel::SchemaInspector. This allows for alternate
+    ## mechanisms of procuring lists of tables, columns, primary keys, and/or foreign keys from an
+    ## adapter that may not support `#tables`/`#columns`/`#primary_key`/`#foreign_keys`.
+    ##
+    ##
+    ## @param adapter [String, Symbol]
+    ##   The "adapter" value used to match that given in the connection spec. It is with this value
+    ##   that the adapter being registered is matched to an existing database pool/connection.
+    ##
+    ## @param tables [Proc]
+    ##   The Proc to `#call` to request a list of table names. The Proc will be called with one
+    ##   parameter: a database connection.
+    ##
+    ## @param columns [Proc]
+    ##   The Proc to `#call` to request a list of columns for a specific table. The Proc will be
+    ##   called with two parameters: a database connection and a table name.
+    ##
+    ## @param primary_key [Proc]
+    ##   The Proc to `#call` to request the primary key for a specific table. The Proc will be
+    ##   called with two parameters: a database connection and a table name.
+    ##
+    ## @param foreign_keys [Proc]
+    ##   The Proc to `#call` to request a list of foreign keys for a specific table. The Proc will
+    ##   be called with two parameters: a database connection and a table name.
+    ##
     def self.register_adapter(adapter:, tables:, columns:, primary_key:, foreign_keys: nil)
       adapter = adapter.to_sym.downcase
       raise Automodel::AdapterAlreadyRegistered, adapter if known_adapters.key? adapter
@@ -25,14 +54,27 @@ module Automodel
                                   foreign_keys: foreign_keys }
     end
 
-    def initialize(connection_pooler)
-      @connection = connection_pooler.connection
-      adapter = connection_pooler.connection_pool.spec.config[:adapter]
+    ## @param connection_handler [ActiveRecord::ConnectionHandling]
+    ##   The connection pool/handler (an object that implements ActiveRecord::ConnectionHandling) to
+    ##   inspect and map out.
+    ##
+    def initialize(connection_handler)
+      @connection = connection_handler.connection
+      adapter = connection_handler.connection_pool.spec.config[:adapter]
 
       @registration = known_adapters[adapter.to_sym] || {}
       raise Automodel::UnregisteredAdapter, adapter unless @registration
     end
 
+    ## Returns a list of table names in the target database.
+    ##
+    ## If a matching Automodel::SchemaInspector registration is found for the connection's adapter,
+    ## and that registration specified a `:tables` Proc, the Proc is called. Otherwise, the standard
+    ## connection `#tables` is returned.
+    ##
+    ##
+    ## @return [Array<String>]
+    ##
     def tables
       @tables ||= if @registration[:tables].present?
                     @registration[:tables].call(@connection)
@@ -41,6 +83,19 @@ module Automodel
                   end
     end
 
+    ## Returns a list of columns for the given table.
+    ##
+    ## If a matching Automodel::SchemaInspector registration is found for the connection's adapter,
+    ## and that registration specified a `:columns` Proc, the Proc is called. Otherwise, the
+    ## standard connection `#columns` is returned.
+    ##
+    ##
+    ## @param table_name [String]
+    ##   The table whose columns should be fetched.
+    ##
+    ##
+    ## @return [Array<ActiveRecord::ConnectionAdapters::Column>]
+    ##
     def columns(table_name)
       table_name = table_name.to_s
 
@@ -52,6 +107,19 @@ module Automodel
                                end
     end
 
+    ## Returns the primary key for the given table.
+    ##
+    ## If a matching Automodel::SchemaInspector registration is found for the connection's adapter,
+    ## and that registration specified a `:primary_key` Proc, the Proc is called. Otherwise, the
+    ## standard connection `#primary_key` is returned.
+    ##
+    ##
+    ## @param table_name [String]
+    ##   The table whose primary key should be fetched.
+    ##
+    ##
+    ## @return [String, Array<String>]
+    ##
     def primary_key(table_name)
       table_name = table_name.to_s
 
@@ -63,6 +131,19 @@ module Automodel
                                     end
     end
 
+    ## Returns a list of foreign keys for the given table.
+    ##
+    ## If a matching Automodel::SchemaInspector registration is found for the connection's adapter,
+    ## and that registration specified a `:foreign_keys` Proc, the Proc is called. Otherwise, the
+    ## standard connection `#foreign_key` is returned.
+    ##
+    ##
+    ## @param table_name [String]
+    ##   The table whose foreign keys should be fetched.
+    ##
+    ##
+    ## @return [Array<ActiveRecord::ConnectionAdapters::ForeignKeyDefinition>]
+    ##
     def foreign_keys(table_name)
       table_name = table_name.to_s
 
@@ -104,6 +185,19 @@ module Automodel
 
     private
 
+    ## Returns a qualified table name.
+    ##
+    ##
+    ## @param table_name [String]
+    ##   The name to qualify.
+    ##
+    ## @param context [String]
+    ##   The name of an existing table from whose namespace we want to be able to reach the first
+    ##   table.
+    ##
+    ##
+    ## @return [String]
+    ##
     def qualified(table_name, context:)
       return table_name if table_name['.'].present?
       return table_name if context['.'].blank?
@@ -111,6 +205,8 @@ module Automodel
       "#{context.sub(%r{[^.]*$}, '')}#{table_name}"
     end
 
+    ## Returns an unqualified table name.
+    ##
     def unqualified(table_name)
       table_name.split('.').last
     end

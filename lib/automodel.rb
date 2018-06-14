@@ -7,15 +7,43 @@ require 'automodel/connectors'
 require 'automodel/schema_inspector'
 require 'automodel/version'
 
-def automodel(*args)
-  ## Build out a connection spec Hash from the given `*args`.
+## The main (really *only*) entrypoint for the Automodel gem. This is the method the end-user calls
+## to trigger a database scrape and model generation.
+##
+##
+## @param spec [Symbol, String, Hash]
+##   The Symbol/String/Hash to pass through to the ActiveRecord connection resolver, as detailed in
+##   [ActiveRecord::ConnectionHandling#establish_connection](http://bit.ly/2JQdA8c). Whether the
+##   given `spec` value is a Hash or is a Symbol/String to run through the ActiveRecord resolver,
+##   the resulting Hash may include the following options (in addition to the actual connection
+##   parameters).
+##
+## @option spec [String] :subschema
+##   The name of an additional namespace with which tables in the target database are prefixed.
+##   Intended for use with SQL Server, where tables' fully-qualified names may have an additional
+##   namespace between the database name and the table name (e.g. `database.dbo.table`, in which
+##   case the subschema would be `"dbo"`.
+##
+## @option spec [String] :namespace
+##   A String representing the desired namespace for the generated model classes (e.g. `"NewDB"` or
+##   `"WeirdDB::Models"`). If not given, the generated models will fall under `Kernel` so they are
+##   always available without namespacing, like standard user-defined model classes.
+##
+##
+## @return [ActiveRecord::Base]
+##   The returned value is an instance of an ActiveRecord::Base subclass. This is the class that
+##   serves as superclass to all of the generated model classes, so that a list of all models can be
+##   easily compiled by calling `#subclasses` on this value.
+##
+def automodel(spec)
+  ## Build out a connection spec Hash from the given value.
   ##
   resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver
-  connection_spec = resolver.new(ActiveRecord::Base.configurations).resolve(*args).symbolize_keys
+  connection_spec = resolver.new(ActiveRecord::Base.configurations).resolve(spec).symbolize_keys
 
   ## We need a base class for all of the models we're about to create, but don't want to pollute
   ## ActiveRecord::Base's own connection pool, so we'll need a subclass. This will serve as both
-  ## our base class for new models and as the connection pool handler. Am defining it with names
+  ## our base class for new models and as the connection pool handler. We're defining it with names
   ## that reflect both uses just to keep the code more legible.
   ##
   base_class_for_new_models = connection_handler = Class.new(ActiveRecord::Base)
@@ -26,11 +54,11 @@ def automodel(*args)
   ##
   connection_handler.establish_connection(connection_spec)
 
-  ## Build the base table map.
+  ## Map out the table structures.
   ##
   tables = map_tables(connection_handler, subschema: connection_spec.fetch(:subschema, ''))
 
-  ## Build out the table models.
+  ## Define the table models.
   ##
   tables.each do |table|
     table[:model] = Class.new(base_class_for_new_models) do
@@ -39,14 +67,14 @@ def automodel(*args)
       self.table_name = table[:name]
       self.primary_key = table[:primary_key]
 
-      ## Don't allow #find for tables with a composite primary key.
+      ## Don't allow `#find` for tables with a composite primary key.
       ##
       def find(*args)
         raise Automodel::CannotFindOnCompoundPrimaryKey if table[:composite_primary_key]
         super
       end
 
-      ## Create railsy column name aliases where necessary/possible.
+      ## Create railsy column name aliases whenever possible.
       ##
       table[:columns].each do |column|
         railsy_name = railsy_column_name(column)
@@ -83,25 +111,37 @@ def automodel(*args)
     from_table[:model].class_eval(association_setup, __FILE__, __LINE__)
   end
 
-  connection_handler
+  ## There's no obvious value we can return that would be of any use, except maybe the base class,
+  ## in case the end user wants to procure a list of all the models (via `#subclasses`).
+  ##
+  base_class_for_new_models
 end
 
-def register_class(class_object, as:, within: :Kernel)
-  components = within.to_s.split('::').compact.map(&:to_sym)
-  components.unshift(:Kernel) unless components.first.to_s.safe_constantize.present?
-
-  namespace = components.shift.to_s.constantize
-  components.each do |component|
-    namespace = if component.in? namespace.constants
-                  namespace.const_get(component)
-                else
-                  namespace.const_set(component, Module.new)
-                end
-  end
-
-  namespace.const_set(as, class_object)
-end
-
+## Takes a connection pool (an object that implements ActiveRecord::ConnectionHandling), scrapes the
+## target database, and returns a list of the tables' metadata.
+##
+##
+## @param connection_handler [ActiveRecord::ConnectionHandling]
+##   The connection pool/handler to inspect and map out.
+##
+## @param subschema [String]
+##   The name of an additional namespace with which tables in the target database are prefixed, as
+##   eplained in {#automodel}.
+##
+##
+## @return [Array<Hash>]
+##   An Array where each value is a Hash representing a table in the target database. Each such Hash
+##   will define the following keys:
+##
+##   - `:name` [String] -- The table name, prefixed with the subschema name (if one is given).
+##   - `:columns` [Array<ActiveRecord::ConnectionAdapters::Column>] -- A list columns im the table.
+##   - `:primary_key` [String, Array<String>] -- The primary key. (An Array for composite keys.)
+##   - `:foreign_keys` [Array<ActiveRecord::ConnectionAdapters::ForeignKeyDefinition>] -- The FKs.
+##   - `:base_name` [String] -- The table name, with no subschema.
+##   - `:model_name` [String] -- A Railsy class name for the corresponding model.
+##   - `:composite_primary_key` [true, false] -- Whether this table has a composite primary key.
+##   - `:column_aliases` [Hash<String, ActiveRecord::ConnectionAdapters::Column>]-- Maps column names to their definition.
+##
 def map_tables(connection_handler, subschema: '')
   ## Normalize the "subschema" name.
   ##
@@ -130,6 +170,19 @@ def map_tables(connection_handler, subschema: '')
   end
 end
 
+## Returns a Railsy name for the given column.
+##
+##
+## @param column [ActiveRecord::ConnectionAdapters::Column]
+##   The column for which we want to generate a Railsy name.
+##
+##
+## @return [String]
+##   The given column's name, in Railsy form. Note Date/Datetime columns are not suffixed with "_on"
+##   or "_at" per Rails norm, as this can work against you with column names like "BirthDate" (which
+##   would turn into "birth_on"). A future release will address this by building out a comprehensive
+##   list of such names and their correct Railsy representation, but that is not currently the case.
+##
 def railsy_column_name(column)
   case column.type
   when :boolean
@@ -139,10 +192,40 @@ def railsy_column_name(column)
   end
 end
 
-# Automodel::SchemaInspector.register_adapter(
-#   adapter: 'sqlserver',
-#   tables: ->(connection) { connection.tables },
-#   columns: ->(connection, table_name) { connection.columns(table_name) },
-#   primary_key: ->(connection, table_name) { connection.primary_key(table_name) },
-#   foreign_keys: ->(connection, table_name) { connection.foreign_keys(table_name) }
-# )
+## Registers the given class "as" the given name and "within" the given namespace (if any).
+##
+##
+## @param class_object [Class]
+##   The class to register.
+##
+## @param as [String]
+##   The name with which to register the class. Note this should be a base name (no "::").
+##
+## @param within [String, Symbol, Module, Class]
+##   The module/class under which the given class should be registered. If the named module/class
+##   does not exist, as many nested modules as needed are declared so the class can be registered
+##   as requested.
+##
+##   e.g.: `register_class(Class.new, as: "Sample", within: "Many::Levels::Deep")` will declare
+##         module `Many`, module `Many::Levels`, module `Many::Levels::Deep`, and then register
+##         the given class as `Many::Levels::Deep::Sample`.
+##
+##
+## @return [Class]
+##   The newly-registered class (the same value as the originally-submitted "class_object").
+##
+def register_class(class_object, as:, within: :Kernel)
+  components = within.to_s.split('::').compact.map(&:to_sym)
+  components.unshift(:Kernel) unless components.first.to_s.safe_constantize.present?
+
+  namespace = components.shift.to_s.constantize
+  components.each do |component|
+    namespace = if component.in? namespace.constants
+                  namespace.const_get(component)
+                else
+                  namespace.const_set(component, Module.new)
+                end
+  end
+
+  namespace.const_set(as, class_object)
+end

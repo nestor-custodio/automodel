@@ -1,0 +1,38 @@
+commons: &commons
+  encoding: unicode
+  pool: <%= ENV.fetch('RAILS_MAX_THREADS') { 5 } %>
+  timeouts: 5000
+
+
+sqlite:
+  <<: *commons
+  adapter: sqlite3
+  database: db/sample_db.sqlite3
+
+mysql_or_mariadb:
+  <<: *commons
+  adapter: mysql2
+  host: name_or_ip
+  port: port_number
+  username: username
+  password: password
+  database: sample_db
+
+postgres:
+  <<: *commons
+  adapter: postgresql
+  host: name_or_ip
+  port: port_number
+  username: username
+  password: password
+  database: sample_db
+
+sql_server:
+  <<: *commons
+  adapter: sqlserver
+  host: name_or_ip
+  port: port_number
+  username: username
+  password: password
+  database: sample_db
+  subschema: dbo
