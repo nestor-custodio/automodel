@@ -1,3 +1,5 @@
+require 'automodel/automodel'
+
 module Automodel
   ## The canonical **automodel** gem version.
   ##
