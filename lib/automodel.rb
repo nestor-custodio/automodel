@@ -94,10 +94,10 @@ def automodel(spec)
   ## With all models registered, we can safely declare relationships.
   ##
   tables.map { |table| table[:foreign_keys] }.flatten.each do |fk|
-    from_table = tables.find { |table| table[:name].split('.').last == fk.from_table }
+    from_table = tables.find { |table| table[:base_name] == fk.from_table.delete('"') }
     next unless from_table.present?
 
-    to_table = tables.find { |table| table[:name].split('.').last == fk.to_table }
+    to_table = tables.find { |table| table[:base_name] == fk.to_table.delete('"') }
     next unless to_table.present?
 
     association_setup = <<~END_OF_HEREDOC
