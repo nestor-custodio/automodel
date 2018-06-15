@@ -12,6 +12,11 @@ module Automodel
   class AdapterAlreadyRegistered < Error
   end
 
+  ## An error resulting from an aborted Automodel due to a class name collision.
+  ##
+  class NameCollision < Error
+  end
+
   ## An error resulting from calling `#find` on a table with a compound primary key.
   ##
   class CannotFindOnCompoundPrimaryKey < Error

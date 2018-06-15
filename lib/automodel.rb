@@ -30,6 +30,8 @@ require 'automodel/version'
 ##   always available without namespacing, like standard user-defined model classes.
 ##
 ##
+## @raise [Automodel::ModelNameCollision]
+##
 ## @return [ActiveRecord::Base]
 ##   The returned value is an instance of an ActiveRecord::Base subclass. This is the class that
 ##   serves as superclass to all of the generated model classes, so that a list of all models can be
@@ -46,8 +48,9 @@ def automodel(spec)
   ## our base class for new models and as the connection pool handler. We're defining it with names
   ## that reflect both uses just to keep the code more legible.
   ##
+  connection_handler_name = "CH_#{SecureRandom.uuid.delete('-')}"
   base_class_for_new_models = connection_handler = Class.new(ActiveRecord::Base)
-  Automodel::Helpers.register_class(connection_handler, as: "CH_#{SecureRandom.uuid.delete('-')}",
+  Automodel::Helpers.register_class(connection_handler, as: connection_handler_name,
                                                         within: :'Automodel::Connectors')
 
   ## Establish a connection with the given params.
@@ -57,6 +60,17 @@ def automodel(spec)
   ## Map out the table structures.
   ##
   tables = Automodel::Helpers.map_tables(connection_handler, subschema: connection_spec[:subschema])
+
+  ## Safeguard against class name collisions.
+  ##
+  defined_names = Array((connection_spec[:namespace] || :Kernel).to_s.safe_constantize&.constants)
+  potential_names = tables.map { |table| table[:model_name].to_sym }
+  name_collisions = defined_names & potential_names
+  if name_collisions.present?
+    connection_handler.connection_pool.disconnect!
+    Automodel::Connectors.send(:remove_const, connection_handler_name)
+    raise Automodel::NameCollision, name_collisions
+  end
 
   ## Define the table models.
   ##
