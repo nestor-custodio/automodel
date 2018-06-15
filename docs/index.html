@@ -58,14 +58,24 @@
       </div>
 
       <div id="content"><div id='filecontents'>
-<h1 id="label-Automodel">Automodel</h1>
+<h1 id="label-Automodel+rdoc-image-3Ahttps-3A-2F-2Fbadge.fury.io-2Frb-2Fautomodel.svg">Automodel <a href="https://badge.fury.io/rb/automodel"><img src="https://badge.fury.io/rb/automodel.svg"></a></h1>
 
-<p>Welcome to your new gem! In this directory, you&#39;ll find the files you
-need to be able to package up your Ruby library into a gem. Put your Ruby
-code in the file <code>lib/automodel</code>. To experiment with that code,
-run <code>bin/console</code> for an interactive prompt.</p>
+<p>Connecting your Rails application to a database created outside of the
+Rails environment usually means either spending hours writing up class
+files for every table, or giving up on using the ActiveRecord query DSL and
+resigning yourself to building SQL strings and making
+<code>execute</code>/<code>exec_query</code> calls.</p>
 
-<p>TODO: Delete this and the text above, and describe your gem</p>
+<p>Are those SQL strings you&#39;re building even injection-safe? Hmm… 😟</p>
+
+<p><em>With a single command</em>, <strong>Automodel</strong> lets you connect
+to any database and access all of its tables via the ActiveRecord DSL
+you&#39;ve grown to love!</p>
+
+<p>It does this by analyzing the table structures and: - automatically
+defining all of the corresponding model classes - declaring column aliases
+so you can use Railsy names an idioms - constructing model relations based
+on foreign key definitions</p>
 
 <h2 id="label-Installation">Installation</h2>
 
@@ -84,28 +94,206 @@ run <code>bin/console</code> for an interactive prompt.</p>
 <pre class="code ruby"><code class="ruby">$ gem install automodel
 </code></pre>
 
-<h2 id="label-Usage">Usage</h2>
+<h2 id="label-Using+Automodel">Using Automodel</h2>
 
-<p>TODO: Write usage instructions here</p>
+<p>The following examples all assume a Postgres database with the following
+tables: “`sql – Create Table: Authors CREATE TABLE public.“Authors” ( 
+“Author ID” serial NOT NULL ,  “Name” varchar NOT NULL DEFAULT &#39;&#39;, 
+“Birthday” date NULL ,  “Address” varchar NOT NULL DEFAULT &#39;&#39;,</p>
 
-<h2 id="label-Development">Development</h2>
+<p>CONSTRAINT authors__pk PRIMARY KEY (“Author ID”) ) WITH ( OIDS=FALSE );</p>
+
+<p>– Create Table: Publishers CREATE TABLE public.“Publishers” (  “Publisher
+ID” serial NOT NULL ,  “Name” varchar NOT NULL DEFAULT &#39;&#39;, 
+“Address” varchar NOT NULL DEFAULT &#39;&#39;,  “Website” varchar NOT NULL
+DEFAULT &#39;&#39;,</p>
+
+<p>CONSTRAINT publishers__pk PRIMARY KEY (“Publisher ID”) ) WITH ( OIDS=FALSE
+);</p>
+
+<p>– Create Table: Books CREATE TABLE public.“Books” (  “Book ID” serial NOT
+NULL ,  “Title” varchar NOT NULL DEFAULT &#39;&#39; ,  “Edition” int NOT
+NULL DEFAULT 1 ,  “ISBN Number” varchar NOT NULL DEFAULT &#39;&#39; , 
+“Published On” date NOT NULL ,  “Is Out Of Print” bool NOT NULL DEFAULT
+FALSE,  “Author ID” bigint NOT NULL ,  “Publisher ID” bigint NOT NULL ,</p>
+
+<p>CONSTRAINT books__pk PRIMARY KEY (“Book ID”),</p>
+
+<p>CONSTRAINT books_authors_fk FOREIGN KEY (“Author ID”)  REFERENCES
+public.“Authors”(“Author ID”),</p>
+
+<p>CONSTRAINT books_publishers_fk FOREIGN KEY (“Publisher ID”)  REFERENCES
+public.“Publishers”(“Publisher ID”) ) WITH ( OIDS=FALSE ); “`</p>
+<hr>
+
+<h4 id="label-Connecting+To+The+External+Database">Connecting To The External Database</h4>
+
+<p>You can provide the connection spec inline …</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_automodel'><span class='object_link'><a href="top-level-namespace.html#automodel-instance_method" title="#automodel (method)">automodel</a></span></span> <span class='label'>adapter:</span>  <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>postgresql</span><span class='tstring_end'>&#39;</span></span> <span class='comma'>,</span>
+          <span class='label'>encoding:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>unicode</span><span class='tstring_end'>&#39;</span></span>    <span class='comma'>,</span>
+          <span class='label'>host:</span>     <span class='id identifier rubyid_hostname'>hostname</span>     <span class='comma'>,</span>
+          <span class='label'>port:</span>     <span class='id identifier rubyid_port_number'>port_number</span>  <span class='comma'>,</span>
+          <span class='label'>username:</span> <span class='id identifier rubyid_username'>username</span>     <span class='comma'>,</span>
+          <span class='label'>password:</span> <span class='id identifier rubyid_password'>password</span>     <span class='comma'>,</span>
+          <span class='label'>database:</span> <span class='id identifier rubyid_database_name'>database_name</span>
+</code></pre>
+
+<p>… or you can use a connection spec defined in “config/database.yml” …</p>
+
+<pre class="code ruby"><code class="ruby">## In &quot;database.yml&quot; ...
+
+## ... (your application&#39;s own db connection stuff) ...
+
+
+external_db:
+  adapter:  postgresql
+  pool:     &lt;%= ENV.fetch(&#39;RAILS_MAX_THREADS&#39;) { 5 } %&gt;
+  timeouts: 5000
+  encoding: unicode
+  host:     name_or_ip
+  port:     port_number
+  username: username
+  password: password
+  database: sample_db
+</code></pre>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'>## In &quot;config/puma.rb&quot; or &quot;config/unicorn.rb&quot; ...
+</span>
+<span class='id identifier rubyid_automodel'><span class='object_link'><a href="top-level-namespace.html#automodel-instance_method" title="#automodel (method)">automodel</a></span></span> <span class='symbol'>:external_db</span>
+</code></pre>
+<hr>
+
+<h4 id="label-Using+The+Automodel-27ed+Objects">Using The Automodel&#39;ed Objects</h4>
+
+<p>Connecting via either method above will allow you to issue all of the
+following expressions, just as if these were your own models:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='comment'>## ISBNs for all non-first-edition books.
+</span><span class='id identifier rubyid_isbn_list'>isbn_list</span> <span class='op'>=</span> <span class='const'>Book</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='period'>.</span><span class='id identifier rubyid_not'>not</span><span class='lparen'>(</span><span class='label'>edition:</span> <span class='int'>1</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_pluck'>pluck</span><span class='lparen'>(</span><span class='symbol'>:isbn_number</span><span class='rparen'>)</span>
+
+<span class='comment'>## Take any book and look up some values.
+</span><span class='id identifier rubyid_book'>book</span> <span class='op'>=</span> <span class='const'>Book</span><span class='period'>.</span><span class='id identifier rubyid_take'>take</span>
+<span class='id identifier rubyid_book'>book</span><span class='period'>.</span><span class='id identifier rubyid_title'>title</span>
+<span class='id identifier rubyid_book'>book</span><span class='period'>.</span><span class='id identifier rubyid_out_of_print?'>out_of_print?</span>
+<span class='id identifier rubyid_book'>book</span><span class='period'>.</span><span class='id identifier rubyid_publisher'>publisher</span><span class='period'>.</span><span class='id identifier rubyid_name'>name</span>
+
+
+<span class='comment'>## Note that some ActiveRecord constructs surface real table names,
+</span><span class='comment'>## which can look awkward in code when working with tables with non-Railsy names:
+</span><span class='comment'>## (the uppercase &quot;P&quot; in &quot;Publishers&quot; below makes it look like a class reference)
+</span><span class='const'>Book</span><span class='period'>.</span><span class='id identifier rubyid_joins'>joins</span><span class='lparen'>(</span><span class='symbol'>:Publishers</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_where'>where</span><span class='lparen'>(</span><span class='label'>Publishers:</span> <span class='lbrace'>{</span> <span class='label'>name:</span> <span class='id identifier rubyid_test_value'>test_value</span> <span class='rbrace'>}</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_all'>all</span>
+</code></pre>
+<hr>
+
+<h4 id="label-Automodel+With+Namespacing">Automodel With Namespacing</h4>
+
+<p>If you&#39;re worried about model name collisions (or just want to keep the
+global namespace tidy), Automodel can define all of the new model classes
+under a module.</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_automodel'><span class='object_link'><a href="top-level-namespace.html#automodel-instance_method" title="#automodel (method)">automodel</a></span></span> <span class='label'>adapter:</span>   <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>postgresql</span><span class='tstring_end'>&#39;</span></span> <span class='comma'>,</span>
+          <span class='label'>encoding:</span>  <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>unicode</span><span class='tstring_end'>&#39;</span></span>    <span class='comma'>,</span>
+          <span class='label'>host:</span>      <span class='id identifier rubyid_hostname'>hostname</span>     <span class='comma'>,</span>
+          <span class='label'>port:</span>      <span class='id identifier rubyid_port_number'>port_number</span>  <span class='comma'>,</span>
+          <span class='label'>username:</span>  <span class='id identifier rubyid_username'>username</span>     <span class='comma'>,</span>
+          <span class='label'>password:</span>  <span class='id identifier rubyid_password'>password</span>     <span class='comma'>,</span>
+          <span class='label'>database:</span>  <span class='id identifier rubyid_database_name'>database_name</span><span class='comma'>,</span>
+          <span class='label'>namespace:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>ExternalDB</span><span class='tstring_end'>&#39;</span></span>
+
+<span class='comment'>## Now you can do everything you&#39;d expect, but the models are namespaced under ExternalDB.
+</span><span class='const'>ExternalDB</span><span class='op'>::</span><span class='const'>Book</span><span class='period'>.</span><span class='id identifier rubyid_find'>find</span><span class='lparen'>(</span><span class='int'>5</span><span class='rparen'>)</span>            <span class='comment'>## =&gt; Book #5
+</span><span class='const'>ExternalDB</span><span class='op'>::</span><span class='const'>Book</span><span class='period'>.</span><span class='id identifier rubyid_take'>take</span><span class='period'>.</span><span class='id identifier rubyid_author'>author</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span>  <span class='comment'>## =&gt; ExternalDB::Author
+</span></code></pre>
+<hr>
+
+<p><a href="http://nestor-custodio.github.io/automodel/Automodel.html">Consult
+the repo docs for the full Automodel documentation.</a></p>
+
+<h2 id="label-FAQs">FAQs</h2>
+<ul><li>
+<h5 id="label-Do+I+have+to+add+anything+to+my+Gemfile+besides+-27automodel-27-3F">Do I have to add anything to my Gemfile besides <code>&#39;automodel&#39;</code>?</h5>
+
+<p>Only if you want to use connection adapters that are not yet part of your
+gemset. (e.g. Don&#39;t expect to be able to connect to a MySQL database
+without having added <code>&#39;mysql2&#39;</code> to your Gemfile.</p>
+</li><li>
+<h5 id="label-But+what+about+my+application-27s+own+models-3F">But what about my application&#39;s own models?</h5>
+
+<p>You can use Automodel <strong>and</strong> continue to use your
+application&#39;s own models without changing a single line of code.</p>
+</li><li>
+<h5 id="label-Can+I+Automodel+more+than+one+database-3F">Can I Automodel more than one database?</h5>
+
+<p>Yes! You can Automodel as many databases with as many different adapters
+as you like. Automodel takes care of connecting to the various databases
+and managing their connection pools for you.</p>
+</li><li>
+<h5 id="label-What+about+model+name+collisions-3F">What about model name collisions?</h5>
+
+<p>If an <code>automodel</code> call will result in a class name collision,
+an Automodel::NameCollisionError is raised <em>before</em> any classes are
+clobbered.</p>
+</li><li>
+<h5 id="label-What+if+I+want+custom+methods+for+certain+models-3F">What if I want custom methods for certain models?</h5>
+
+<p>You can either monkey-patch your methods onto the applicable
+Automodel-generated classes once they&#39;ve been defined, or you can
+monkey-patch the method onto the connection handler class returned by the
+<code>automodel</code> call itself, which will make it available for all
+models generated <em>by that call</em>.</p>
+</li><li>
+<h5 id="label-What+if+I-27m+using+ActiveRecord+but+not+Rails-3F">What if I&#39;m using ActiveRecord but not Rails?</h5>
+
+<p>That&#39;s no problem at all! The <strong>automodel</strong> gem&#39;s
+<em>only</em> dependency is ActiveRecord – not Rails. Adding
+<code>&#39;automodel&#39;</code> to your Gemfile (along with any relevant
+connection adapters, of course) is all you need to make use of the tool in
+your vanilla-Ruby project. Just be mindful that – since
+“config/database.yml” isn&#39;t available (as you&#39;re not using Rails) –
+you&#39;ll always need to pass in a full connection spec to your
+<code>automodel</code> calls (as in the very first example, under
+<em>“Connecting To The External Database”</em> above).</p>
+</li></ul>
+
+<h2 id="label-Feature+Roadmap+-2F+Future+Development">Feature Roadmap / Future Development</h2>
+
+<p>Additional features/options coming in the future:</p>
+<ul><li>
+<p><strong>Naming</strong>: Better generation of Railsy names for
+<code>:date</code>/<code>:datetime</code> column types.</p>
+</li><li>
+<p><strong>Reads</strong>: Support for <code>#find</code> on tables with
+composite primary keys.</p>
+</li><li>
+<p><strong>Writes</strong>: Better handling of missing
+<code>created_at</code>/<code>updated_at</code> columns on record
+creation/updates.</p>
+</li><li>
+<p><strong>Traversal</strong>: Support for <code>has_many</code> relations
+(only <code>belongs_to</code> is currently supported).</p>
+</li><li>
+<p><strong>Traversal</strong>: Support for self-referential foreign keys.</p>
+</li><li>
+<p><strong>Traversal</strong>: Support for multiple relations to the same
+target model.</p>
+</li></ul>
+
+<h2 id="label-Contribution+-2F+Development">Contribution / Development</h2>
+
+<p>Bug reports and pull requests are welcome on GitHub at <a
+href="https://github.com/nestor-custodio/automodel">github.com/nestor-custodio/automodel</a>.</p>
 
 <p>After checking out the repo, run <code>bin/setup</code> to install
 dependencies. Then, run <code>rake spec</code> to run the tests. You can
 also run <code>bin/console</code> for an interactive prompt that will allow
 you to experiment.</p>
 
-<p>To install this gem onto your local machine, run <code>bundle exec rake
-install</code>. To release a new version, update the version number in
-<code>version.rb</code>, and then run <code>bundle exec rake
-release</code>, which will create a git tag for the version, push git
-commits and tags, and push the <code>.gem</code> file to <a
-href="https://rubygems.org">rubygems.org</a>.</p>
-
-<h2 id="label-Contributing">Contributing</h2>
-
-<p>Bug reports and pull requests are welcome on GitHub at <a
-href="https://github.com/[USERNAME]/automodel">github.com/[USERNAME]/automodel</a>.</p>
+<p>Linting is courtesy of <a
+href="https://github.com/bbatsov/rubocop">Rubocop</a> and documentation is
+built using <a href="https://yardoc.org/">Yard</a>. Neither is included in
+the Gemspec; you&#39;ll need to install these locally (<code>gem install
+rubocop yard</code>) to take advantage.</p>
 
 <h2 id="label-License">License</h2>
 
@@ -114,7 +302,7 @@ href="https://opensource.org/licenses/MIT">MIT License</a>.</p>
 </div></div>
 
       <div id="footer">
-  Generated on Thu Jun 14 14:06:15 2018 by
+  Generated on Fri Jun 15 16:46:47 2018 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.14 (ruby-2.5.1).
 </div>

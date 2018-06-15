@@ -4,7 +4,7 @@
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>
-  Exception: Automodel::Error
+  Exception: Automodel::NameCollisionError
   
     &mdash; Documentation by YARD 0.9.14
   
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../css/common.css" type="text/css" charset="utf-8" />
 
 <script type="text/javascript" charset="utf-8">
-  pathId = "Automodel::Error";
+  pathId = "Automodel::NameCollisionError";
   relpath = '../';
 </script>
 
@@ -36,10 +36,10 @@
       <div id="header">
         <div id="menu">
   
-    <a href="../_index.html">Index (E)</a> &raquo;
+    <a href="../_index.html">Index (N)</a> &raquo;
     <span class='title'><span class='object_link'><a href="../Automodel.html" title="Automodel (module)">Automodel</a></span></span>
      &raquo; 
-    <span class="title">Error</span>
+    <span class="title">NameCollisionError</span>
   
 </div>
 
@@ -59,7 +59,7 @@
         <div class="clear"></div>
       </div>
 
-      <div id="content"><h1>Exception: Automodel::Error
+      <div id="content"><h1>Exception: Automodel::NameCollisionError
   
   
   
@@ -69,14 +69,16 @@
   <dl>
     <dt>Inherits:</dt>
     <dd>
-      <span class="inheritName">StandardError</span>
+      <span class="inheritName"><span class='object_link'><a href="Error.html" title="Automodel::Error (class)">Error</a></span></span>
       
         <ul class="fullTree">
           <li>Object</li>
           
             <li class="next">StandardError</li>
           
-            <li class="next">Automodel::Error</li>
+            <li class="next"><span class='object_link'><a href="Error.html" title="Automodel::Error (class)">Error</a></span></li>
+          
+            <li class="next">Automodel::NameCollisionError</li>
           
         </ul>
         <a href="#" class="inheritanceTree">show all</a>
@@ -104,7 +106,7 @@
 <h2>Overview</h2><div class="docstring">
   <div class="discussion">
     
-<p>The base Error class for all <strong>automodel</strong> gem issues.</p>
+<p>An error resulting from an aborted Automodel due to a class name collision.</p>
 
 
   </div>
@@ -112,9 +114,6 @@
 <div class="tags">
   
 
-</div><div id="subclasses">
-  <h2>Direct Known Subclasses</h2>
-  <p class="children"><span class='object_link'><a href="AdapterAlreadyRegisteredError.html" title="Automodel::AdapterAlreadyRegisteredError (class)">AdapterAlreadyRegisteredError</a></span>, <span class='object_link'><a href="FindOnCompoundPrimaryKeyError.html" title="Automodel::FindOnCompoundPrimaryKeyError (class)">FindOnCompoundPrimaryKeyError</a></span>, <span class='object_link'><a href="NameCollisionError.html" title="Automodel::NameCollisionError (class)">NameCollisionError</a></span></p>
 </div>
 
 
@@ -123,7 +122,12 @@
 
 
 
-
+  
+  
+  
+  
+  
+  
   
 
 </div>

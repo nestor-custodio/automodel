@@ -247,6 +247,19 @@ classes, so that a list of all models can be easily compiled by calling
     </li>
   
 </ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Automodel::ModelNameCollisionError</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
 
 </div><table class="source_code">
   <tr>
@@ -254,8 +267,6 @@ classes, so that a list of all models can be easily compiled by calling
       <pre class="lines">
 
 
-38
-39
 40
 41
 42
@@ -334,10 +345,24 @@ classes, so that a list of all models can be easily compiled by calling
 115
 116
 117
-118</pre>
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132</pre>
     </td>
     <td>
-      <pre class="code"><span class="info file"># File 'lib/automodel.rb', line 38</span>
+      <pre class="code"><span class="info file"># File 'lib/automodel.rb', line 40</span>
 
 <span class='kw'>def</span> <span class='id identifier rubyid_automodel'>automodel</span><span class='lparen'>(</span><span class='id identifier rubyid_spec'>spec</span><span class='rparen'>)</span>
   <span class='comment'>## Build out a connection spec Hash from the given value.
@@ -350,8 +375,9 @@ classes, so that a list of all models can be easily compiled by calling
 </span>  <span class='comment'>## our base class for new models and as the connection pool handler. We&#39;re defining it with names
 </span>  <span class='comment'>## that reflect both uses just to keep the code more legible.
 </span>  <span class='comment'>##
-</span>  <span class='id identifier rubyid_base_class_for_new_models'>base_class_for_new_models</span> <span class='op'>=</span> <span class='id identifier rubyid_connection_handler'>connection_handler</span> <span class='op'>=</span> <span class='const'>Class</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='const'>ActiveRecord</span><span class='op'>::</span><span class='const'>Base</span><span class='rparen'>)</span>
-  <span class='const'><span class='object_link'><a href="Automodel.html" title="Automodel (module)">Automodel</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Automodel/Helpers.html" title="Automodel::Helpers (module)">Helpers</a></span></span><span class='period'>.</span><span class='id identifier rubyid_register_class'><span class='object_link'><a href="Automodel/Helpers.html#register_class-class_method" title="Automodel::Helpers.register_class (method)">register_class</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_connection_handler'>connection_handler</span><span class='comma'>,</span> <span class='label'>as:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>CH_</span><span class='embexpr_beg'>#{</span><span class='const'>SecureRandom</span><span class='period'>.</span><span class='id identifier rubyid_uuid'>uuid</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+</span>  <span class='id identifier rubyid_connection_handler_name'>connection_handler_name</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>CH_</span><span class='embexpr_beg'>#{</span><span class='const'>SecureRandom</span><span class='period'>.</span><span class='id identifier rubyid_uuid'>uuid</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>-</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_base_class_for_new_models'>base_class_for_new_models</span> <span class='op'>=</span> <span class='id identifier rubyid_connection_handler'>connection_handler</span> <span class='op'>=</span> <span class='const'>Class</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='const'>ActiveRecord</span><span class='op'>::</span><span class='const'>Base</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="Automodel.html" title="Automodel (module)">Automodel</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Automodel/Helpers.html" title="Automodel::Helpers (module)">Helpers</a></span></span><span class='period'>.</span><span class='id identifier rubyid_register_class'><span class='object_link'><a href="Automodel/Helpers.html#register_class-class_method" title="Automodel::Helpers.register_class (method)">register_class</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_connection_handler'>connection_handler</span><span class='comma'>,</span> <span class='label'>as:</span> <span class='id identifier rubyid_connection_handler_name'>connection_handler_name</span><span class='comma'>,</span>
                                                         <span class='label'>within:</span> <span class='symbol'>:&#39;Automodel::Connectors&#39;</span><span class='rparen'>)</span>
 
   <span class='comment'>## Establish a connection with the given params.
@@ -361,6 +387,17 @@ classes, so that a list of all models can be easily compiled by calling
   <span class='comment'>## Map out the table structures.
 </span>  <span class='comment'>##
 </span>  <span class='id identifier rubyid_tables'>tables</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="Automodel.html" title="Automodel (module)">Automodel</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Automodel/Helpers.html" title="Automodel::Helpers (module)">Helpers</a></span></span><span class='period'>.</span><span class='id identifier rubyid_map_tables'><span class='object_link'><a href="Automodel/Helpers.html#map_tables-class_method" title="Automodel::Helpers.map_tables (method)">map_tables</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_connection_handler'>connection_handler</span><span class='comma'>,</span> <span class='label'>subschema:</span> <span class='id identifier rubyid_connection_spec'>connection_spec</span><span class='lbracket'>[</span><span class='symbol'>:subschema</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+
+  <span class='comment'>## Safeguard against class name collisions.
+</span>  <span class='comment'>##
+</span>  <span class='id identifier rubyid_defined_names'>defined_names</span> <span class='op'>=</span> <span class='const'>Array</span><span class='lparen'>(</span><span class='lparen'>(</span><span class='id identifier rubyid_connection_spec'>connection_spec</span><span class='lbracket'>[</span><span class='symbol'>:namespace</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='symbol'>:Kernel</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='period'>.</span><span class='id identifier rubyid_safe_constantize'>safe_constantize</span><span class='op'>&amp;.</span><span class='id identifier rubyid_constants'>constants</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_potential_names'>potential_names</span> <span class='op'>=</span> <span class='id identifier rubyid_tables'>tables</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_table'>table</span><span class='op'>|</span> <span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:model_name</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span> <span class='rbrace'>}</span>
+  <span class='id identifier rubyid_name_collisions'>name_collisions</span> <span class='op'>=</span> <span class='id identifier rubyid_defined_names'>defined_names</span> <span class='op'>&amp;</span> <span class='id identifier rubyid_potential_names'>potential_names</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_name_collisions'>name_collisions</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span>
+    <span class='id identifier rubyid_connection_handler'>connection_handler</span><span class='period'>.</span><span class='id identifier rubyid_connection_pool'>connection_pool</span><span class='period'>.</span><span class='id identifier rubyid_disconnect!'>disconnect!</span>
+    <span class='const'><span class='object_link'><a href="Automodel.html" title="Automodel (module)">Automodel</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Automodel/Connectors.html" title="Automodel::Connectors (module)">Connectors</a></span></span><span class='period'>.</span><span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span><span class='symbol'>:remove_const</span><span class='comma'>,</span> <span class='id identifier rubyid_connection_handler_name'>connection_handler_name</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="Automodel.html" title="Automodel (module)">Automodel</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Automodel/NameCollisionError.html" title="Automodel::NameCollisionError (class)">NameCollisionError</a></span></span><span class='comma'>,</span> <span class='id identifier rubyid_name_collisions'>name_collisions</span>
+  <span class='kw'>end</span>
 
   <span class='comment'>## Define the table models.
 </span>  <span class='comment'>##
@@ -374,7 +411,7 @@ classes, so that a list of all models can be easily compiled by calling
       <span class='comment'>## Don&#39;t allow `#find` for tables with a composite primary key.
 </span>      <span class='comment'>##
 </span>      <span class='kw'>def</span> <span class='id identifier rubyid_find'>find</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
-        <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="Automodel.html" title="Automodel (module)">Automodel</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Automodel/CannotFindOnCompoundPrimaryKey.html" title="Automodel::CannotFindOnCompoundPrimaryKey (class)">CannotFindOnCompoundPrimaryKey</a></span></span> <span class='kw'>if</span> <span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:composite_primary_key</span><span class='rbracket'>]</span>
+        <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="Automodel.html" title="Automodel (module)">Automodel</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Automodel/FindOnCompoundPrimaryKeyError.html" title="Automodel::FindOnCompoundPrimaryKeyError (class)">FindOnCompoundPrimaryKeyError</a></span></span> <span class='kw'>if</span> <span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:composite_primary_key</span><span class='rbracket'>]</span>
         <span class='kw'>super</span>
       <span class='kw'>end</span>
 
@@ -398,10 +435,10 @@ classes, so that a list of all models can be easily compiled by calling
   <span class='comment'>## With all models registered, we can safely declare relationships.
 </span>  <span class='comment'>##
 </span>  <span class='id identifier rubyid_tables'>tables</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_table'>table</span><span class='op'>|</span> <span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:foreign_keys</span><span class='rbracket'>]</span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_flatten'>flatten</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_fk'>fk</span><span class='op'>|</span>
-    <span class='id identifier rubyid_from_table'>from_table</span> <span class='op'>=</span> <span class='id identifier rubyid_tables'>tables</span><span class='period'>.</span><span class='id identifier rubyid_find'>find</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_table'>table</span><span class='op'>|</span> <span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:name</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_split'>split</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>.</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_last'>last</span> <span class='op'>==</span> <span class='id identifier rubyid_fk'>fk</span><span class='period'>.</span><span class='id identifier rubyid_from_table'>from_table</span> <span class='rbrace'>}</span>
+    <span class='id identifier rubyid_from_table'>from_table</span> <span class='op'>=</span> <span class='id identifier rubyid_tables'>tables</span><span class='period'>.</span><span class='id identifier rubyid_find'>find</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_table'>table</span><span class='op'>|</span> <span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:base_name</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_fk'>fk</span><span class='period'>.</span><span class='id identifier rubyid_from_table'>from_table</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>&quot;</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span> <span class='rbrace'>}</span>
     <span class='kw'>next</span> <span class='kw'>unless</span> <span class='id identifier rubyid_from_table'>from_table</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span>
 
-    <span class='id identifier rubyid_to_table'>to_table</span> <span class='op'>=</span> <span class='id identifier rubyid_tables'>tables</span><span class='period'>.</span><span class='id identifier rubyid_find'>find</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_table'>table</span><span class='op'>|</span> <span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:name</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_split'>split</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>.</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_last'>last</span> <span class='op'>==</span> <span class='id identifier rubyid_fk'>fk</span><span class='period'>.</span><span class='id identifier rubyid_to_table'>to_table</span> <span class='rbrace'>}</span>
+    <span class='id identifier rubyid_to_table'>to_table</span> <span class='op'>=</span> <span class='id identifier rubyid_tables'>tables</span><span class='period'>.</span><span class='id identifier rubyid_find'>find</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_table'>table</span><span class='op'>|</span> <span class='id identifier rubyid_table'>table</span><span class='lbracket'>[</span><span class='symbol'>:base_name</span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='id identifier rubyid_fk'>fk</span><span class='period'>.</span><span class='id identifier rubyid_to_table'>to_table</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>&quot;</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span> <span class='rbrace'>}</span>
     <span class='kw'>next</span> <span class='kw'>unless</span> <span class='id identifier rubyid_to_table'>to_table</span><span class='period'>.</span><span class='id identifier rubyid_present?'>present?</span>
 
     <span class='id identifier rubyid_association_setup'>association_setup</span> <span class='op'>=</span> <span class='heredoc_beg'>&lt;&lt;~END_OF_HEREDOC</span>
@@ -430,7 +467,7 @@ classes, so that a list of all models can be easily compiled by calling
 </div>
 
       <div id="footer">
-  Generated on Thu Jun 14 14:06:16 2018 by
+  Generated on Fri Jun 15 16:46:49 2018 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.14 (ruby-2.5.1).
 </div>

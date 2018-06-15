@@ -553,7 +553,7 @@ connection and a table name.</p>
     <li>
       
       
-        <span class='type'>(<tt><span class='object_link'><a href="AdapterAlreadyRegistered.html" title="Automodel::AdapterAlreadyRegistered (class)">Automodel::AdapterAlreadyRegistered</a></span></tt>)</span>
+        <span class='type'>(<tt><span class='object_link'><a href="AdapterAlreadyRegisteredError.html" title="Automodel::AdapterAlreadyRegisteredError (class)">Automodel::AdapterAlreadyRegisteredError</a></span></tt>)</span>
       
       
       
@@ -582,7 +582,7 @@ connection and a table name.</p>
 
 <span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_register_adapter'>register_adapter</span><span class='lparen'>(</span><span class='label'>adapter:</span><span class='comma'>,</span> <span class='label'>tables:</span><span class='comma'>,</span> <span class='label'>columns:</span><span class='comma'>,</span> <span class='label'>primary_key:</span><span class='comma'>,</span> <span class='label'>foreign_keys:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
   <span class='id identifier rubyid_adapter'>adapter</span> <span class='op'>=</span> <span class='id identifier rubyid_adapter'>adapter</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span><span class='period'>.</span><span class='id identifier rubyid_downcase'>downcase</span>
-  <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../Automodel.html" title="Automodel (module)">Automodel</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="AdapterAlreadyRegistered.html" title="Automodel::AdapterAlreadyRegistered (class)">AdapterAlreadyRegistered</a></span></span><span class='comma'>,</span> <span class='id identifier rubyid_adapter'>adapter</span> <span class='kw'>if</span> <span class='id identifier rubyid_known_adapters'>known_adapters</span><span class='period'>.</span><span class='id identifier rubyid_key?'>key?</span> <span class='id identifier rubyid_adapter'>adapter</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../Automodel.html" title="Automodel (module)">Automodel</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="AdapterAlreadyRegisteredError.html" title="Automodel::AdapterAlreadyRegisteredError (class)">AdapterAlreadyRegisteredError</a></span></span><span class='comma'>,</span> <span class='id identifier rubyid_adapter'>adapter</span> <span class='kw'>if</span> <span class='id identifier rubyid_known_adapters'>known_adapters</span><span class='period'>.</span><span class='id identifier rubyid_key?'>key?</span> <span class='id identifier rubyid_adapter'>adapter</span>
 
   <span class='id identifier rubyid_known_adapters'>known_adapters</span><span class='lbracket'>[</span><span class='id identifier rubyid_adapter'>adapter</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='lbrace'>{</span> <span class='label'>tables:</span> <span class='id identifier rubyid_tables'>tables</span><span class='comma'>,</span>
                               <span class='label'>columns:</span> <span class='id identifier rubyid_columns'>columns</span><span class='comma'>,</span>
@@ -1036,7 +1036,7 @@ connection <code>#tables</code> is returned.</p>
 </div>
 
       <div id="footer">
-  Generated on Thu Jun 14 14:06:16 2018 by
+  Generated on Fri Jun 15 16:46:50 2018 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.14 (ruby-2.5.1).
 </div>
