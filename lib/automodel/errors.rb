@@ -9,16 +9,16 @@ module Automodel
   ## An error resulting from an attempt to register the same adapter name with
   ## {Automodel::SchemaInspector.register_adapter} multiple times.
   ##
-  class AdapterAlreadyRegistered < Error
+  class AdapterAlreadyRegisteredError < Error
   end
 
   ## An error resulting from an aborted Automodel due to a class name collision.
   ##
-  class NameCollision < Error
+  class NameCollisionError < Error
   end
 
   ## An error resulting from calling `#find` on a table with a compound primary key.
   ##
-  class CannotFindOnCompoundPrimaryKey < Error
+  class FindOnCompoundPrimaryKeyError < Error
   end
 end

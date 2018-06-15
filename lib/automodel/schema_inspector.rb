@@ -45,11 +45,11 @@ module Automodel
     ##   be called with two parameters: a database connection and a table name.
     ##
     ##
-    ## @raise [Automodel::AdapterAlreadyRegistered]
+    ## @raise [Automodel::AdapterAlreadyRegisteredError]
     ##
     def self.register_adapter(adapter:, tables:, columns:, primary_key:, foreign_keys: nil)
       adapter = adapter.to_sym.downcase
-      raise Automodel::AdapterAlreadyRegistered, adapter if known_adapters.key? adapter
+      raise Automodel::AdapterAlreadyRegisteredError, adapter if known_adapters.key? adapter
 
       known_adapters[adapter] = { tables: tables,
                                   columns: columns,

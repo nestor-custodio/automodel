@@ -30,7 +30,7 @@ require 'automodel/version'
 ##   always available without namespacing, like standard user-defined model classes.
 ##
 ##
-## @raise [Automodel::ModelNameCollision]
+## @raise [Automodel::ModelNameCollisionError]
 ##
 ## @return [ActiveRecord::Base]
 ##   The returned value is an instance of an ActiveRecord::Base subclass. This is the class that
@@ -69,7 +69,7 @@ def automodel(spec)
   if name_collisions.present?
     connection_handler.connection_pool.disconnect!
     Automodel::Connectors.send(:remove_const, connection_handler_name)
-    raise Automodel::NameCollision, name_collisions
+    raise Automodel::NameCollisionError, name_collisions
   end
 
   ## Define the table models.
@@ -84,7 +84,7 @@ def automodel(spec)
       ## Don't allow `#find` for tables with a composite primary key.
       ##
       def find(*args)
-        raise Automodel::CannotFindOnCompoundPrimaryKey if table[:composite_primary_key]
+        raise Automodel::FindOnCompoundPrimaryKeyError if table[:composite_primary_key]
         super
       end
 
