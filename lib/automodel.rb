@@ -7,8 +7,8 @@ require 'automodel/connectors'
 require 'automodel/helpers'
 require 'automodel/version'
 
-## The main (really *only*) entrypoint for the Automodel gem. This is the method the end-user calls
-## to trigger a database scrape and model generation.
+## The main (really *only*) entrypoint for the **automodel** gem. This is the method the end-user
+## calls to trigger a database scrape and model generation.
 ##
 ##
 ## @param spec [Symbol, String, Hash]

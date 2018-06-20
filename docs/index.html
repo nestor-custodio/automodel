@@ -68,7 +68,7 @@ resigning yourself to building SQL strings and making
 
 <p>Are those SQL strings you&#39;re building even injection-safe? Hmm… 😟</p>
 
-<p><em>With a single command</em>, <strong>Automodel</strong> lets you connect
+<p><em>With a single command</em>, <strong>automodel</strong> lets you connect
 to any database and access all of its tables via the ActiveRecord DSL
 you&#39;ve grown to love!</p>
 
@@ -207,8 +207,9 @@ under a module.</p>
 </span></code></pre>
 <hr>
 
-<p><a href="http://nestor-custodio.github.io/automodel/Automodel.html">Consult
-the repo docs for the full Automodel documentation.</a></p>
+<p><a
+href="http://nestor-custodio.github.io/automodel/top-level-namespace.html#automodel-instance_method">Consult
+the repo docs for the full automodel documentation.</a></p>
 
 <h2 id="label-FAQs">FAQs</h2>
 <ul><li>
@@ -216,18 +217,18 @@ the repo docs for the full Automodel documentation.</a></p>
 
 <p>Only if you want to use connection adapters that are not yet part of your
 gemset. (e.g. Don&#39;t expect to be able to connect to a MySQL database
-without having added <code>&#39;mysql2&#39;</code> to your Gemfile.</p>
+without having added <code>&#39;mysql2&#39;</code> to your Gemfile.)</p>
 </li><li>
 <h5 id="label-But+what+about+my+application-27s+own+models-3F">But what about my application&#39;s own models?</h5>
 
-<p>You can use Automodel <strong>and</strong> continue to use your
-application&#39;s own models without changing a single line of code.</p>
+<p>You can call <code>automodel</code> <strong>and</strong> continue to use
+your application&#39;s own models without changing a single line of code.</p>
 </li><li>
 <h5 id="label-Can+I+Automodel+more+than+one+database-3F">Can I Automodel more than one database?</h5>
 
 <p>Yes! You can Automodel as many databases with as many different adapters
-as you like. Automodel takes care of connecting to the various databases
-and managing their connection pools for you.</p>
+as you like. <strong>automodel</strong> takes care of connecting to the
+various databases and managing their connection pools for you.</p>
 </li><li>
 <h5 id="label-What+about+model+name+collisions-3F">What about model name collisions?</h5>
 
@@ -245,15 +246,14 @@ models generated <em>by that call</em>.</p>
 </li><li>
 <h5 id="label-What+if+I-27m+using+ActiveRecord+but+not+Rails-3F">What if I&#39;m using ActiveRecord but not Rails?</h5>
 
-<p>That&#39;s no problem at all! The <strong>automodel</strong> gem&#39;s
-<em>only</em> dependency is ActiveRecord – not Rails. Adding
-<code>&#39;automodel&#39;</code> to your Gemfile (along with any relevant
-connection adapters, of course) is all you need to make use of the tool in
-your vanilla-Ruby project. Just be mindful that – since
-“config/database.yml” isn&#39;t available (as you&#39;re not using Rails) –
-you&#39;ll always need to pass in a full connection spec to your
-<code>automodel</code> calls (as in the very first example, under
-<em>“Connecting To The External Database”</em> above).</p>
+<p>That&#39;s no problem at all! The <strong>automodel</strong> gem depends
+on ActiveRecord – not Rails. Adding <code>&#39;automodel&#39;</code> to
+your Gemfile (along with any relevant connection adapters, of course) is
+all you need to make use of the tool in your vanilla-Ruby project. Just be
+mindful that – since “config/database.yml” isn&#39;t available (as
+you&#39;re not using Rails) – you&#39;ll always need to pass in a full
+connection spec to your <code>automodel</code> calls (as in the very first
+example, under <em>“Connecting To The External Database”</em> above).</p>
 </li></ul>
 
 <h2 id="label-Feature+Roadmap+-2F+Future+Development">Feature Roadmap / Future Development</h2>
@@ -302,7 +302,7 @@ href="https://opensource.org/licenses/MIT">MIT License</a>.</p>
 </div></div>
 
       <div id="footer">
-  Generated on Fri Jun 15 16:46:47 2018 by
+  Generated on Wed Jun 20 18:29:55 2018 by
   <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
   0.9.14 (ruby-2.5.1).
 </div>

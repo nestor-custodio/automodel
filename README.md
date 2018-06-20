@@ -4,7 +4,7 @@ Connecting your Rails application to a database created outside of the Rails env
 
 Are those SQL strings you're building even injection-safe? Hmm... 😟
 
-*With a single command*, **Automodel** lets you connect to any database and access all of its tables via the ActiveRecord DSL you've grown to love!
+*With a single command*, **automodel** lets you connect to any database and access all of its tables via the ActiveRecord DSL you've grown to love!
 
 It does this by analyzing the table structures and:
 - automatically defining all of the corresponding model classes
@@ -166,19 +166,19 @@ ExternalDB::Book.take.author.class  ## => ExternalDB::Author
 
 ---
 
-[Consult the repo docs for the full Automodel documentation.](http://nestor-custodio.github.io/automodel/Automodel.html)
+[Consult the repo docs for the full **automodel** documentation.](http://nestor-custodio.github.io/automodel/top-level-namespace.html#automodel-instance_method)
 
 
 ## FAQs
 
 - ##### Do I have to add anything to my Gemfile besides `'automodel'`?
-  Only if you want to use connection adapters that are not yet part of your gemset. (e.g. Don't expect to be able to connect to a MySQL database without having added `'mysql2'` to your Gemfile.
+  Only if you want to use connection adapters that are not yet part of your gemset. (e.g. Don't expect to be able to connect to a MySQL database without having added `'mysql2'` to your Gemfile.)
 
 - ##### But what about my application's own models?
-  You can use Automodel **and** continue to use your application's own models without changing a single line of code.
+  You can call `automodel` **and** continue to use your application's own models without changing a single line of code.
 
 - ##### Can I Automodel more than one database?
-  Yes! You can Automodel as many databases with as many different adapters as you like. Automodel takes care of connecting to the various databases and managing their connection pools for you.
+  Yes! You can Automodel as many databases with as many different adapters as you like. **automodel** takes care of connecting to the various databases and managing their connection pools for you.
 
 - ##### What about model name collisions?
   If an `automodel` call will result in a class name collision, an Automodel::NameCollisionError is raised *before* any classes are clobbered.
@@ -187,7 +187,7 @@ ExternalDB::Book.take.author.class  ## => ExternalDB::Author
   You can either monkey-patch your methods onto the applicable Automodel-generated classes once they've been defined, or you can monkey-patch the method onto the connection handler class returned by the `automodel` call itself, which will make it available for all models generated *by that call*.
 
 - ##### What if I'm using ActiveRecord but not Rails?
-  That's no problem at all! The **automodel** gem's *only* dependency is ActiveRecord  -- not Rails. Adding `'automodel'` to your Gemfile (along with any relevant connection adapters, of course) is all you need to make use of the tool in your vanilla-Ruby project. Just be mindful that -- since "config/database.yml" isn't available (as you're not using Rails) -- you'll always need to pass in a full connection spec to your `automodel` calls (as in the very first example, under *"Connecting To The External Database"* above).
+  That's no problem at all! The **automodel** gem depends on ActiveRecord -- not Rails. Adding `'automodel'` to your Gemfile (along with any relevant connection adapters, of course) is all you need to make use of the tool in your vanilla-Ruby project. Just be mindful that -- since "config/database.yml" isn't available (as you're not using Rails) -- you'll always need to pass in a full connection spec to your `automodel` calls (as in the very first example, under *"Connecting To The External Database"* above).
 
 
 ## Feature Roadmap / Future Development
